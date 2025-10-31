@@ -1,0 +1,62 @@
+name: Run OrangeTesting Schedule
+
+on:
+  workflow_dispatch:  # permite executar manualmente
+  push:
+    branches: [ main ]
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login na API e obter token
+        id: login
+        run: |
+          TOKEN=$(curl -s --location 'https://app.orangetesting.com:5001/api/users/login' \
+            --header 'Content-Type: application/json' \
+            --data-raw "{\"email\": \"${{ secrets.ORANGE_EMAIL }}\", \"password\": \"${{ secrets.ORANGE_PASSWORD }}\"}" \
+            | jq -r '.token')
+
+          if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
+            echo "Erro: não foi possível obter o token!"
+            exit 1
+          fi
+
+          echo "token=$TOKEN" >> $GITHUB_OUTPUT
+
+      - name: Criar agendamento
+        id: schedule
+        run: |
+          RESPONSE=$(curl -s --location 'https://app.orangetesting.com:5001/api/schedules' \
+            --header "Authorization: Bearer ${{ steps.login.outputs.token }}" \
+            --header 'Content-Type: application/json' \
+            --data '{
+              "name": "Smoke Test CI",
+              "url": "https://rh-hero-git-dev-companyhero.vercel.app/",
+              "product": "Hero",
+              "modules": ["PoC"],
+              "qualityGates": ["Smoke Test"],
+              "useInsertionOrder": true
+            }')
+
+          echo "Resposta do agendamento: $RESPONSE"
+          ID=$(echo "$RESPONSE" | jq -r '.id // .scheduleId // .data.id')
+
+          if [ "$ID" == "null" ] || [ -z "$ID" ]; then
+            echo "Erro: não foi possível obter o ID do agendamento!"
+            exit 1
+          fi
+
+          echo "schedule_id=$ID" >> $GITHUB_OUTPUT
+
+      - name: Esperar execução (delay)
+        run: sleep 60
+
+      - name: Buscar resultado do agendamento
+        run: |
+          curl -s --location "https://app.orangetesting.com:5001/api/schedules/${{ steps.schedule.outputs.schedule_id }}/result" \
+            --header "Authorization: Bearer ${{ steps.login.outputs.token }}" | jq
