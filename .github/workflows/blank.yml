@@ -75,10 +75,10 @@ jobs:
 
            echo "Resultado atual: $RESULT"
 
-           if [ "$RESULT" == "pass" ]; then
+           if [ "$RESULT" == "Pass" ]; then
               echo "✅ Teste passou!"
               exit 0
-           elif [ "$RESULT" == "fail" ]; then
+           elif [ "$RESULT" == "Fail" ]; then
               echo "❌ Teste falhou!"
               exit 1
            else
