@@ -18,7 +18,7 @@ jobs:
         run: |
           TOKEN=$(curl -s --location 'https://app.orangetesting.com:5001/api/users/login' \
             --header 'Content-Type: application/json' \
-            --data-raw "{\"email\": \"claudinei@companyhero.com\", \"password\": \"testehero4321!\"}" \
+            --data-raw "{\"email\": \"${{ secrets.ORANGE_EMAIL }}\", \"password\": \"testehero4321!\"}" \
             | jq -r '.token')
 
           if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
