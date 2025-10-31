@@ -44,7 +44,7 @@ jobs:
             }')
 
           echo "Resposta do agendamento: $RESPONSE"
-          ID=$(echo "$RESPONSE" | jq -r '.id // .scheduleId // .data.id')
+          ID=$(echo "$RESPONSE" | jq -r '.id // .scheduleId // .data.id // .idSchedule')
 
           if [ "$ID" == "null" ] || [ -z "$ID" ]; then
             echo "Erro: não foi possível obter o ID do agendamento!"
