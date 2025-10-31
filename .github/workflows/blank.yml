@@ -18,6 +18,7 @@ jobs:
         env:
           ORANGE_EMAIL: ${{ secrets.ORANGE_EMAIL }}
         run: |
+          echo "Email: $ORANGE_EMAIL"
           TOKEN=$(curl -s --location 'https://app.orangetesting.com:5001/api/users/login' \
             --header 'Content-Type: application/json' \
             --data-raw "{\"email\": \"$ORANGE_EMAIL\", \"password\": \"testehero4321!\"}" \
