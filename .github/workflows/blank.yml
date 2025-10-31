@@ -56,7 +56,37 @@ jobs:
       - name: Esperar execução (delay)
         run: sleep 60
 
-      - name: Buscar resultado do agendamento
+      - name: Verificar resultado do agendamento
         run: |
-          curl -s --location "https://app.orangetesting.com:5001/api/schedules/${{ steps.schedule.outputs.schedule_id }}/result" \
-            --header "Authorization: Bearer ${{ steps.login.outputs.token }}" | jq
+         echo "Verificando resultado do agendamento ${{ steps.schedule.outputs.schedule_id }} ..."
+
+         ATTEMPTS=0
+         MAX_ATTEMPTS=10
+         DELAY=30
+
+         while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+           RESPONSE=$(curl -s --location "https://app.orangetesting.com:5001/api/schedules/${{ steps.schedule.outputs.schedule_id }}/result" \
+             --header "Authorization: Bearer ${{ steps.login.outputs.token }}")
+
+           echo "Resposta da API:"
+           echo "$RESPONSE"
+
+           RESULT=$(echo "$RESPONSE" | jq -r '.result // .data.result')
+
+           echo "Resultado atual: $RESULT"
+
+           if [ "$RESULT" == "pass" ]; then
+              echo "✅ Teste passou!"
+              exit 0
+           elif [ "$RESULT" == "fail" ]; then
+              echo "❌ Teste falhou!"
+              exit 1
+           else
+              echo "⏳ Ainda processando... (tentativa $((ATTEMPTS+1))/$MAX_ATTEMPTS)"
+              ATTEMPTS=$((ATTEMPTS+1))
+              sleep $DELAY
+          fi
+         done
+
+         echo "⚠️ Tempo limite atingido sem resultado final."
+         exit 1
