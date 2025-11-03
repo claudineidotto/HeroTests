@@ -42,7 +42,7 @@ jobs:
               "url": "https://rh-hero-git-dev-companyhero.vercel.app/",
               "product": "Hero",
               "modules": ["PoC"],
-              "qualityGates": ["Smoke Test"],
+              "qualityGates": ["Regression"],
               "useInsertionOrder": true
             }')
 
